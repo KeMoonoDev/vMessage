@@ -46,6 +46,8 @@ class MessagesConfig {
     var join = JoinConfig()
     var leave = LeaveConfig()
     var change = ChangeConfig()
+    @Comment("If you want chat/join/leave messages to be synced across all servers")
+    var syncMessages = true
 }
 
 @ConfigSerializable

@@ -55,6 +55,9 @@ messages:
     # %prefix% - LuckPerms Prefix
     # %suffix% - LuckPerms Suffix
     format: <dark_gray>(<gold>•<dark_gray>) <gray>%player% <dark_gray>(<gold>%old_server%→%new_server%<dark_gray>)
+
+  # If you want chat/join/leave messages to be synced across all servers
+  sync-messages: true
 commands:
   # /broadcast, /bcast, /bc
   broadcast:

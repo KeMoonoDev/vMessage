@@ -13,11 +13,14 @@
 package off.szymon.vmessage;
 
 import com.velocitypowered.api.proxy.Player;
+import com.velocitypowered.api.proxy.ServerConnection;
+import net.kyori.adventure.chat.ChatType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import off.szymon.vmessage.compatibility.LuckPermsCompatibilityProvider;
 import off.szymon.vmessage.config.ConfigManager;
+import off.szymon.vmessage.config.tree.MessagesConfig;
 import off.szymon.vmessage.config.tree.TextComponentConfig;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.CommentedConfigurationNode;
@@ -45,13 +48,16 @@ public class Broadcaster {
     }
 
     public void message(Player player, String message) {
-        String msg = ConfigManager.get().getConfig().getMessages().getChat().getFormat();
+        MessagesConfig messagesConfig = ConfigManager.get().getConfig().getMessages();
+        String msg = messagesConfig.getChat().getFormat();
 
         //noinspection OptionalGetWithoutIsPresent
+        ServerConnection currentServer = player.getCurrentServer().get();
+
         msg = msg
                 .replace("%player%", player.getUsername())
                 .replace("%message%", escapeMiniMessage(message))
-                .replace("%server%", parseAlias(player.getCurrentServer().get().getServerInfo().getName()));
+                .replace("%server%", parseAlias(currentServer.getServerInfo().getName()));
         if (lp != null) {
             LuckPermsCompatibilityProvider.PlayerData data = lp.getMetaData(player);
             msg = msg
@@ -67,21 +73,30 @@ public class Broadcaster {
             }
         }
 
-        VMessagePlugin.get().getServer().sendMessage(deserializeTextComponents(msg));
+        Component component = deserializeTextComponents(msg);
+        if (messagesConfig.getSyncMessages()) {
+            VMessagePlugin.get().getServer().sendMessage(component);
+        } else {
+            currentServer.getServer().sendMessage(component);
+        }
     }
 
     public void join(Player player) {
-        if (!ConfigManager.get().getConfig().getMessages().getJoin().getEnabled()) return;
+        MessagesConfig messagesConfig = ConfigManager.get().getConfig().getMessages();
+        if (!messagesConfig.getJoin().getEnabled()) return;
         if (player.hasPermission("vmessage.silent.join")) {
             VMessagePlugin.get().getLogger().info("{} has silent join permission, not broadcasting join message", player.getUsername());
             return;
         }
 
-        String msg = ConfigManager.get().getConfig().getMessages().getJoin().getFormat();
+        String msg = messagesConfig.getJoin().getFormat();
+
         //noinspection OptionalGetWithoutIsPresent
+        ServerConnection currentServer = player.getCurrentServer().get();
+
         msg = msg
                 .replace("%player%", player.getUsername())
-                .replace("%server%", parseAlias(player.getCurrentServer().get().getServerInfo().getName()));
+                .replace("%server%", parseAlias(currentServer.getServerInfo().getName()));
 
         if (lp != null) {
             LuckPermsCompatibilityProvider.PlayerData data = lp.getMetaData(player);
@@ -96,29 +111,37 @@ public class Broadcaster {
                 );
             }
         }
-        VMessagePlugin.get().getServer().sendMessage(deserializeTextComponents(msg));
+
+        Component component = deserializeTextComponents(msg);
+        if (messagesConfig.getSyncMessages()) {
+            VMessagePlugin.get().getServer().sendMessage(component);
+        } else {
+            currentServer.getServer().sendMessage(component);
+        }
     }
 
     public void leave(Player player) {
-        if (!ConfigManager.get().getConfig().getMessages().getLeave().getEnabled()) return;
+        MessagesConfig messagesConfig = ConfigManager.get().getConfig().getMessages();
+        if (!messagesConfig.getLeave().getEnabled()) return;
         if (player.hasPermission("vmessage.silent.leave")) {
             VMessagePlugin.get().getLogger().info("{} has silent leave permission, not broadcasting leave message", player.getUsername());
             return;
         }
 
-        String msg = ConfigManager.get().getConfig().getMessages().getLeave().getFormat();
-        String serverName = player.getCurrentServer()
-                .map(server -> server.getServerInfo().getName())
-                .map(this::parseAlias)
-                .orElse(null);
+        String msg = messagesConfig.getLeave().getFormat();
 
-        if (serverName == null) {
+
+        ServerConnection currentServer = player.getCurrentServer().orElse(null);
+
+        if (currentServer == null) {
             return; // invalid server connection, do not send leave message
         }
 
+
+
         msg = msg
                 .replace("%player%", player.getUsername())
-                .replace("%server%", serverName);
+                .replace("%server%", parseAlias(currentServer.getServerInfo().getName()));
 
         if (lp != null) {
             LuckPermsCompatibilityProvider.PlayerData data = lp.getMetaData(player);
@@ -133,7 +156,13 @@ public class Broadcaster {
                 );
             }
         }
-        VMessagePlugin.get().getServer().sendMessage(deserializeTextComponents(msg));
+
+        Component component = deserializeTextComponents(msg);
+        if (messagesConfig.getSyncMessages()) {
+            VMessagePlugin.get().getServer().sendMessage(component);
+        } else {
+            currentServer.getServer().sendMessage(component);
+        }
     }
 
     public void change(Player player, String oldServer) {

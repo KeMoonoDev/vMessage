@@ -28,6 +28,7 @@ java {
 
 repositories {
     mavenCentral()
+    maven("https://api.modrinth.com/maven")
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://jitpack.io/")
     maven("https://mvn-repo.arim.space/lesser-gpl3/")
@@ -65,6 +66,7 @@ dependencies {
     compileOnly("net.luckperms:api:5.4")
     compileOnly("space.arim.libertybans:bans-api:1.1.0")
     compileOnly("com.gitlab.ruany:LiteBansAPI:0.6.1")
+    compileOnly("maven.modrinth:Mvc3WDLr:SoUyxizz") // CleanStaffChat
 
     /* Usage Statistics */
     implementation("org.bstats:bstats-velocity:3.1.0")

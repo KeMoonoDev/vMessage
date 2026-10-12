@@ -26,6 +26,7 @@ import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import off.szymon.vmessage.cmd.CommandHandler;
+import off.szymon.vmessage.compatibility.CleanStaffChatCompatibilityProvider;
 import off.szymon.vmessage.compatibility.LuckPermsCompatibilityProvider;
 import off.szymon.vmessage.compatibility.mute.EmptyMuteCompatibilityProvider;
 import off.szymon.vmessage.compatibility.mute.LibertyBansCompatibilityProvider;
@@ -73,6 +74,7 @@ public class VMessagePlugin {
     private final String name;
     private MutePluginCompatibilityProvider mutePluginCompatibilityProvider;
     private LuckPermsCompatibilityProvider lpCompatibilityProvider;
+    private CleanStaffChatCompatibilityProvider cscCompatibilityProvider;
     private Broadcaster broadcaster;
     private final Metrics.Factory metricsFactory;
 
@@ -119,6 +121,21 @@ public class VMessagePlugin {
         } else {
             logger.info("LuckPerms not detected, disabling support");
             lpCompatibilityProvider = null;
+        }
+
+        /* CleanStaffChat */
+        if (server.getPluginManager().isLoaded("cleanstaffchat")) {
+            logger.info("CleanStaffChat detected, attempting to hook into it...");
+            try {
+                cscCompatibilityProvider = new CleanStaffChatCompatibilityProvider();
+                logger.info("Successfully hooked into CleanStaffChat");
+            } catch (Exception e) {
+                cscCompatibilityProvider = null;
+                logger.error("Failed to hook into CleanStaffChat, disabling support");
+            }
+        } else {
+            logger.info("CleanStaffChat not detected, disabling support");
+            cscCompatibilityProvider = null;
         }
 
         /* Mute Plugin Compatibility */
@@ -206,6 +223,11 @@ public class VMessagePlugin {
     @Nullable("If LuckPerms is not loaded, this will return null")
     public LuckPermsCompatibilityProvider getLuckPermsCompatibilityProvider() {
         return lpCompatibilityProvider;
+    }
+
+    @Nullable("If CleanStaffChat is not loaded, this will return null")
+    public CleanStaffChatCompatibilityProvider getCleanStaffChatCompatibilityProvider() {
+        return cscCompatibilityProvider;
     }
 
     public MutePluginCompatibilityProvider getMutePluginCompatibilityProvider() {

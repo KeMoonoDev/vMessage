@@ -19,6 +19,7 @@ import com.velocitypowered.api.event.player.ServerPostConnectEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import off.szymon.vmessage.compatibility.CleanStaffChatCompatibilityProvider;
 import off.szymon.vmessage.compatibility.LuckPermsCompatibilityProvider;
 import off.szymon.vmessage.compatibility.mute.MutePluginCompatibilityProvider;
 import off.szymon.vmessage.config.ConfigManager;
@@ -34,6 +35,12 @@ public class Listener {
 
         //noinspection deprecation - SignedVelocity is installed
         e.setResult(PlayerChatEvent.ChatResult.denied());
+
+        CleanStaffChatCompatibilityProvider cscCompat = VMessagePlugin.get().getCleanStaffChatCompatibilityProvider();
+        if (cscCompat != null) {
+            // If they're toggled into StaffChat, skip sending anything to normal chat.
+            if (cscCompat.isToggled(e.getPlayer())) return;
+        }
 
         Player player = e.getPlayer();
         MutePluginCompatibilityProvider mpcp = VMessagePlugin.get().getMutePluginCompatibilityProvider();

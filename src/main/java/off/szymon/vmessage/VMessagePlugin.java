@@ -24,6 +24,7 @@ import com.velocitypowered.api.plugin.Dependency;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
+import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import off.szymon.vmessage.cmd.CommandHandler;
 import off.szymon.vmessage.compatibility.CleanStaffChatCompatibilityProvider;
@@ -45,8 +46,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.function.BiConsumer;
 
 @Plugin(
         id = "vmessage",
@@ -78,6 +79,8 @@ public class VMessagePlugin {
     private Broadcaster broadcaster;
     private final Metrics.Factory metricsFactory;
 
+    private final List<BiConsumer<Player, String>> messageCallbacks = new ArrayList<>();
+
     @Inject
     public VMessagePlugin(ProxyServer server, Logger logger, @DataDirectory Path dataFolder, PluginContainer plugin, Metrics.Factory metricsFactory) {
         instance = this;
@@ -88,6 +91,14 @@ public class VMessagePlugin {
         this.plugin = plugin;
         this.metricsFactory = metricsFactory;
         this.name = this.getClass().getAnnotation(Plugin.class).name();
+    }
+
+    Collection<BiConsumer<Player, String>> getMessageCallbacks() {
+        return messageCallbacks;
+    }
+
+    public void addMessageCallback(BiConsumer<Player, String> callback) {
+        messageCallbacks.add(callback);
     }
 
     @Subscribe

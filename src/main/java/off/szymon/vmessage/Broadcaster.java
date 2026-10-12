@@ -74,6 +74,11 @@ public class Broadcaster {
         }
 
         Component component = deserializeTextComponents(msg);
+
+        for (var callback : VMessagePlugin.get().getMessageCallbacks()) {
+            callback.accept(player, message);
+        }
+
         if (messagesConfig.getSyncMessages()) {
             VMessagePlugin.get().getServer().sendMessage(component);
         } else {
